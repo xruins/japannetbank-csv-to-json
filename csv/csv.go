@@ -8,20 +8,21 @@ import (
 	"os"
 	"strconv"
 	"sync"
-	"time"
 
 	"golang.org/x/text/encoding/japanese"
 	"golang.org/x/text/transform"
 )
 
 type Transaction struct {
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	Withdraw    int       `json:"withdraw"`
-	Income      int       `json:"income"`
-	Balance     int       `json:"balance"`
-	Comment     string    `json:"comment"`
+	Timestamp   string `json:"timestamp"`
+	Description string `json:"description"`
+	Withdraw    int    `json:"withdraw"`
+	Income      int    `json:"income"`
+	Balance     int    `json:"balance"`
+	Comment     string `json:"comment"`
 }
+
+const dateLayout = "%04s-%02s-%02T%02s:%02s:%02s|JST"
 
 func ParseCSV(file_path string) ([]*Transaction, error) {
 	inputFile, err := os.Open(file_path)
@@ -43,10 +44,12 @@ func ParseCSV(file_path string) ([]*Transaction, error) {
 		}
 
 		// columns: 年, 月, 日, 時, 分, 秒, 取引順番号, 摘要, お支払金額, お預り金額, 残高, メモ
+		timestamp := fmt.Sprintf(dateLayout, line[0], line[1], line[2], line[3], line[4], line[5])
 		withdraw, _ := strconv.Atoi(line[8])
 		income, _ := strconv.Atoi(line[8])
 		balance, _ := strconv.Atoi(line[8])
 		tran := &Transaction{
+			Timestamp:   timestamp,
 			Description: line[7],
 			Withdraw:    withdraw,
 			Income:      income,
