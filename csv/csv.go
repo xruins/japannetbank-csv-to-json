@@ -3,6 +3,7 @@ package csv
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -35,6 +36,15 @@ func ParseCSV(file_path string) ([]*Transaction, error) {
 	reader.LazyQuotes = true
 
 	transactions := []*Transaction{}
+
+	// skip first line to except header line
+	_, err = reader.Read()
+	if err == io.EOF {
+		return nil, errors.New("malformed CSV")
+	} else if err != nil {
+		return nil, err
+	}
+
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
