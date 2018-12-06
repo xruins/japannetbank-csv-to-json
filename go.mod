@@ -1,3 +1,6 @@
 module github.com/xruins/japannetbank-csv-to-json
 
-require golang.org/x/text v0.3.0
+require (
+	github.com/urfave/cli v1.20.0
+	golang.org/x/text v0.3.0
+)

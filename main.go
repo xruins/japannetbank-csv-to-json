@@ -1,10 +1,11 @@
 package main
 
 import (
-	"log"
+	"io"
 	"os"
 	"time"
 
+	"github.com/urfave/cli"
 	"github.com/xruins/japannetbank-csv-to-json/csv"
 )
 
@@ -17,22 +18,53 @@ type Transaction struct {
 	Comment     string    `json:"comment"`
 }
 
-const (
-	JSON = iota
-	NdJSON
-)
-
 func main() {
-	var format
-	flag.Bool(&delimitWithNewLine, ")
-
-	if len(os.Args) != 2 {
-		log.Fatalf("usage: %s input_file output_file", os.Args[0])
+	app := cli.NewApp()
+	app.Name = "japannnetbank-csv-to-json"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{Name: "input", Value: "", Usage: "Input path of CSV file (default: stdin)"},
+		cli.StringFlag{Name: "outout", Value: "", Usage: "Output path of converted data (default: stdout)"},
+		cli.StringFlag{Name: "format", Value: "json", Usage: "Export format (json/ndjson)"},
 	}
+	app.Usage = "Convert CSV of Japan Net Bank transactions to JSON"
+	app.Action = func(c *cli.Context) error {
+		args := c.Args()
+		input := args.Get(0)
+		output := args.Get(1)
 
-	input := os.Args[1]
-	output := os.Args[2]
+		ts, err := csv.ParseCSV(input)
+		if err != nil {
+			return err
+		}
 
-	ts, err := csv.ParseCSV(input)
+		var b []byte
+		format := c.String("format")
+		switch {
+		case format == "ndjson":
+			b, err = csv.MarshallNewLineDelimitedJSON(ts)
+		case format == "json":
+			b, err = csv.MarshallJSON(ts)
+		default:
+			b, err = csv.MarshallJSON(ts)
+		}
+		if err != nil {
+			return err
+		}
 
+		var writer io.Writer
+		if output == "" {
+			writer = os.Stdout
+		} else {
+			file, err := os.Create(output)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			writer = file
+		}
+
+		writer.Write(b)
+		return nil
+	}
+	app.Run(os.Args)
 }
