@@ -28,9 +28,8 @@ func main() {
 	}
 	app.Usage = "Convert CSV of Japan Net Bank transactions to JSON"
 	app.Action = func(c *cli.Context) error {
-		args := c.Args()
-		input := args.Get(0)
-		output := args.Get(1)
+		input := c.String("input")
+		output := c.String("output")
 
 		ts, err := csv.ParseCSV(input)
 		if err != nil {
