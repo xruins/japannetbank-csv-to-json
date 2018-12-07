@@ -23,7 +23,7 @@ type Transaction struct {
 	Comment     string `json:"comment"`
 }
 
-const dateLayout = "%04s-%02s-%02T%02s:%02s:%02s|JST"
+const dateLayout = "%04s-%02s-%02sT%02s:%02s:%02s|JST"
 
 func ParseCSV(file_path string) ([]*Transaction, error) {
 	inputFile, err := os.Open(file_path)
